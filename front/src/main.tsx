@@ -16,3 +16,19 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </Provider>
   </React.StrictMode>
 );
+
+import "./catalog-redesign.css";
+
+import "./catalog-v2.css";
+
+import "./cart-redesign.css";
+
+import "./auth-redesign.css";
+
+import "./how-to-buy-v2.css";
+
+import "./store-unified.css";
+
+import "./retail-desktop-catalog.css";
+
+import "./retail-truck.css";

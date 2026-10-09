@@ -1,0 +1,21 @@
+.confirmation-popup.dl-order-confirmation{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(18,42,55,.48);backdrop-filter:blur(4px);box-sizing:border-box;overflow-y:auto}
+.dl-order-confirmation .dl-order-confirmation__card{box-sizing:border-box;width:100%;max-width:460px;max-height:calc(100dvh - 40px);overflow:auto;overflow-wrap:anywhere;border:1px solid #e4e9ed;border-radius:28px;padding:34px 30px 28px;background:#fff;box-shadow:0 24px 80px rgba(18,42,55,.22);text-align:center;color:#183242;font-family:inherit}
+.dl-order-confirmation__check{display:grid;place-items:center;width:68px;height:68px;margin:0 auto 20px;border-radius:50%;color:#237453;background:#eaf6ee;border:6px solid #f5faf7;box-sizing:content-box}
+.dl-order-confirmation__check svg{width:34px;height:34px}
+.dl-order-confirmation__eyebrow{display:block;font-size:10px;font-weight:700;letter-spacing:1.4px;color:#70808b;margin-bottom:10px}
+.dl-order-confirmation .dl-order-confirmation__card h3{color:#183242;font-size:28px;line-height:1.15;font-weight:800;margin:0 0 12px}
+.dl-order-confirmation .dl-order-confirmation__card p{font-size:15px;line-height:1.55;color:#6b7881;margin:0 0 22px}
+.dl-order-confirmation__payment{display:flex;flex-direction:column;gap:5px;border-radius:16px;background:#eff8f3;border:1px solid #deeee5;padding:15px;margin:0 0 20px;color:#226248;font-size:13px}
+.dl-order-confirmation__payment strong{font-size:16px}
+.dl-order-confirmation__reference{display:flex;flex-direction:column;gap:7px;margin-bottom:24px;font-size:12px;color:#75818b}
+.dl-order-confirmation__reference strong{color:#354b59;font-size:13px;letter-spacing:.4px;overflow-wrap:anywhere}
+.dl-order-confirmation .dl-order-confirmation__button{display:flex;align-items:center;justify-content:center;gap:18px;box-sizing:border-box;width:100%;min-height:52px;border:0;border-radius:15px;background:#ed0039;color:white;padding:14px 20px;font-family:inherit;font-size:16px;font-weight:700;line-height:1.25;cursor:pointer;box-shadow:none}
+.dl-order-confirmation .dl-order-confirmation__button:hover{background:#cd0031}
+.dl-order-confirmation .dl-order-confirmation__button:focus-visible{outline:3px solid #183242;outline-offset:4px}
+.dl-order-confirmation .dl-order-confirmation__card .dl-order-confirmation__notice{font-size:13px;padding:12px;border-radius:12px;background:#fff8e8;color:#785921;text-align:left}
+@media(max-width:380px){.confirmation-popup.dl-order-confirmation{padding:14px}.dl-order-confirmation .dl-order-confirmation__card{padding:26px 20px 22px;border-radius:24px;max-height:calc(100dvh - 28px)}.dl-order-confirmation .dl-order-confirmation__card h3{font-size:25px}}
+.shipping-method .dl-shipping-included{display:flex;align-items:center;gap:12px;width:100%;padding:8px 0;color:#226248;text-align:left}
+.shipping-method .dl-shipping-included__check{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:50%;background:#eaf6ee;color:#237453;font-size:21px;font-weight:700}
+.shipping-method .dl-shipping-included>div{display:flex;flex-direction:column;gap:3px}
+.shipping-method .dl-shipping-included strong{font-size:16px;color:#226248}
+.shipping-method .dl-shipping-included>div>span{font-size:14px;color:#6b7881}

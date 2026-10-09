@@ -1,6 +1,7 @@
+import { formatMoney } from "../../../utils/money";
 // src/components/MyOrders/MyOrders.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Table, Button, Container, Modal } from "react-bootstrap";
 import AddIcon from "@mui/icons-material/Add";
@@ -59,6 +60,17 @@ export default function MyOrders() {
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedOrderId = searchParams.get('pedido');
+  useEffect(() => {
+    if (!requestedOrderId) return;
+    const order = orders.find(item => item._id === requestedOrderId);
+    if (order) { setSelectedOrder(order); setShowModal(true); }
+  }, [orders, requestedOrderId]);
+  const closeOrderDetail = () => {
+    setShowModal(false);
+    if (requestedOrderId) { const next = new URLSearchParams(searchParams); next.delete('pedido'); setSearchParams(next, {replace:true}); }
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -127,14 +139,15 @@ export default function MyOrders() {
     return (
       <Modal
         show={showModal}
-        onHide={() => setShowModal(false)}
+        onHide={closeOrderDetail}
         size="lg"
         className="order-detail-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Detalle del Pedido</Modal.Title>
+          <Modal.Title>Detalle del pedido</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <p style={{overflowWrap:'anywhere'}}>Referencia: <strong>{selectedOrder._id}</strong></p>
           <div className="order-detail-section">
             <h5>Información del Cliente</h5>
             <p>
@@ -183,9 +196,9 @@ export default function MyOrders() {
                       </div>
                     </td>
                     <td data-label="Cantidad">{item.quantity}</td>
-                    <td data-label="Precio Unit.">${item.price.toFixed(2)}</td>
+                    <td data-label="Precio Unit.">{formatMoney(item.price)}</td>
                     <td data-label="Subtotal">
-                      ${(item.quantity * item.price).toFixed(2)}
+                      {formatMoney((item.quantity * item.price))}
                     </td>
                   </tr>
                 ))}
@@ -198,19 +211,19 @@ export default function MyOrders() {
             <div className="order-summary">
               <div className="summary-row">
                 <span>Subtotal:</span>
-                <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                <span>{formatMoney(selectedOrder.subtotal)}</span>
               </div>
               <div className="summary-row">
                 <span>Envío:</span>
                 <span>
                   {selectedOrder.shippingCost === 0
                     ? "Gratis"
-                    : `$${selectedOrder.shippingCost.toFixed(2)}`}
+                    : formatMoney(selectedOrder.shippingCost)}
                 </span>
               </div>
               <div className="summary-row total">
                 <span>Total:</span>
-                <span>${selectedOrder.total.toFixed(2)}</span>
+                <span>{formatMoney(selectedOrder.total)}</span>
               </div>
             </div>
           </div>
@@ -223,7 +236,7 @@ export default function MyOrders() {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button variant="secondary" onClick={closeOrderDetail}>
             Cerrar
           </Button>
         </Modal.Footer>
@@ -257,14 +270,14 @@ export default function MyOrders() {
             </p>
             <p>
               <strong>Saldo anterior:</strong>{" "}
-              {selectedBalance?.previousBalance.toFixed(2)}
+              {formatMoney(selectedBalance?.previousBalance)}
             </p>
             <p>
-              <strong>Monto:</strong> {selectedBalance?.amount.toFixed(2)}
+              <strong>Monto:</strong> {formatMoney(selectedBalance?.amount)}
             </p>
             <p>
               <strong>Saldo resultante:</strong>{" "}
-              {selectedBalance?.resultingBalance.toFixed(2)}
+              {formatMoney(selectedBalance?.resultingBalance)}
             </p>
             <p>
               <strong>Razón:</strong> {selectedBalance?.reason}
@@ -342,11 +355,12 @@ export default function MyOrders() {
                   <tr key={order._id}>
                     <td data-label="Fecha">
                       {new Date(order.orderDate).toLocaleDateString()}
+                      <small style={{display:'block',overflowWrap:'anywhere'}}>Ref. {order._id}</small>
                     </td>
                     <td data-label="Dirección de Entrega">
                       {`${order.customerInfo?.address}` || ""}
                     </td>
-                    <td data-label="Total">${order.total.toFixed(2)}</td>
+                    <td data-label="Total">{formatMoney(order.total)}</td>
                     <td data-label="Acciones">
                       <Button
                         size="sm"
@@ -417,16 +431,16 @@ export default function MyOrders() {
                         {balance.operation === "order" ? "Pedido" : "Pago"}
                       </td>
                       <td data-label="Saldo anterior" className="movement-amount">
-                        ${balance.previousBalance.toFixed(2)}
+                        {formatMoney(balance.previousBalance)}
                       </td>
                       <td
                         data-label="Monto"
                         className={`movement-amount ${balance.amount < 0 ? "text-danger" : "text-success"}`}
                       >
-                        ${balance.amount.toFixed(2)}
+                        {formatMoney(balance.amount)}
                       </td>
                       <td data-label="Saldo Resultante" className="movement-amount movement-total">
-                        ${balance.resultingBalance.toFixed(2)}
+                        {formatMoney(balance.resultingBalance)}
                       </td>
                       <td data-label="Acciones">
                         <Button

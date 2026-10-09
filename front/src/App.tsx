@@ -1,11 +1,11 @@
+import { ZoneSelector } from "./components/StoreOptions/StoreOptions";
+import CatalogHome from "./components/CatalogHome/CatalogHomeV2";
 import "./App.css";
 import { Routes, Route, useLocation } from "react-router-dom";
 import NavBar from "../src/components/NavBar/NavBar";
-import Header from "../src/components/Header/Header";
-import Categories from "./components/Products/HomeProducts/Categories";
-import ProductsList from "./components/Products/ProductsList/ProductList";
+
 import About from "./components/About/About";
-import HowToBuy from "./components/HowToBuy/HowToBuy";
+import HowToBuy from "./components/HowToBuy/HowToBuyV2";
 import Work from "./components/Work/Work";
 import Cart from "./components/Cart/Cart";
 import Login from "./components/Login/Login";
@@ -16,11 +16,7 @@ import ShippingDetail from "./components/Cart/ShippingDetail/ShippingDetail";
 import Footer from "./components/Footer/Footer";
 import Profile from "./components/Profile/Profile";
 import Orders from "./components/Profile/MyOrders/MyOrders";
-import CardDelivery from "./components/CardDerlivery/CardDelivery";
-import Brands from "./components/Brands/Brands";
-import Offers from "./components/Products/Offers/Offers"; // <--- 1. IMPORTA EL NUEVO COMPONENTE
 import WhatsAppButton from "./components/whatsappButton/WhatsAppButton";
-import HomeSearch from "./components/HomeSearch/HomeSearch";
 function App() {
   const location = useLocation();
   const hideNavAndFooter = location.pathname === "/login";
@@ -30,27 +26,20 @@ function App() {
       <main className="main-content">
         {!hideNavAndFooter && (
           <>
-            <NavBar />
-            <WhatsAppButton />
+            <ZoneSelector /><NavBar />
+            {location.pathname !== "/carrito" && <WhatsAppButton />}
           </>
         )}
 
-        <Routes>
+        <div className="store-page"><Routes>
           <Route
             path="/"
             element={
-              <>
-                <Header />
-                <HomeSearch />
-                <Offers /> {/* <--- 2. AÑADE EL COMPONENTE AQUÍ */}
-                <Categories />
-                <CardDelivery />
-                <Brands />
-              </>
+              <CatalogHome />
             }
           />
 
-          <Route path="/productos" element={<ProductsList />} />
+          <Route path="/productos" element={<CatalogHome />} />
           <Route path="/productos/:id" element={<ProductDetail />} />
           <Route path="/sobrenosotros" element={<About />} />
           <Route path="/comocomprar" element={<HowToBuy />} />
@@ -62,7 +51,7 @@ function App() {
           <Route path="/editarpedido" element={<ShippingDetail />} />
           <Route path="/perfil" element={<Profile />} />
           <Route path="/mispedidos" element={<Orders />} />
-        </Routes>
+        </Routes></div>
         {!hideNavAndFooter && <Footer />}
       </main>
     </div>

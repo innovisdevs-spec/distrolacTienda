@@ -1,0 +1,46 @@
+.campaign-carousel{margin:0 0 2px}
+.campaign-carousel *{box-sizing:border-box}
+.campaign-slide{border-radius:28px;overflow:hidden;background:#fff}
+.campaign-slide[hidden]{display:none}
+.campaign-native{position:relative;isolation:isolate;display:grid;grid-template-columns:1fr 1fr;min-height:320px;background:linear-gradient(115deg,#fff 14%,#fffafb 58%,#fce9ed 100%);border:1px solid #faedf0;border-radius:inherit;overflow:hidden}
+.campaign-copy{position:relative;z-index:3;padding:38px 0 32px 48px}
+.campaign-copy h2{font:700 clamp(28px,3vw,42px)/1.12 Arial,sans-serif;letter-spacing:-1.2px;color:#c8173f;margin:0 0 16px}
+.campaign-copy h2 strong{font-weight:800;color:#d60036}
+.campaign-copy p{font:400 17px/1.5 Arial,sans-serif;color:#233d4c;margin:0 0 22px}
+.campaign-cta{display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:46px;padding:12px 24px;border:0;border-radius:14px;background:#e60039;color:#fff;font:700 16px/1.3 Arial,sans-serif;cursor:pointer;box-shadow:0 5px 14px #df003115}
+.campaign-cta:hover{background:#c90032}
+.campaign-copy small{display:block;font:400 11px/1.5 Arial,sans-serif;color:#63747d;margin-top:12px}
+.campaign-products{position:relative;align-self:end;height:290px;min-width:0;margin-right:30px;z-index:1}
+.campaign-ribbon{position:absolute;inset:16% -12% 1% 9%;border:1px solid #efb6c44d;border-radius:64px;transform:rotate(-12deg);background:linear-gradient(125deg,#fff0 25%,#f7d7df65)}
+.campaign-ribbon:after{content:'';position:absolute;inset:14px -12px -14px 12px;border:1px solid #f0bdca55;border-radius:inherit}
+.campaign-stage{position:absolute;left:7%;right:0;bottom:22px;height:26px;border-radius:50%;background:radial-gradient(ellipse,#923f5225 0%,#c8849210 48%,transparent 72%)}
+.campaign-pack{position:absolute;object-fit:contain;bottom:12px;width:63%;height:90%;filter:drop-shadow(0 6px 3px #74324712)}
+.campaign-pack-0{left:-5%;transform:rotate(-8deg) scale(.86);transform-origin:50% 85%;z-index:1}
+.campaign-pack-1{left:19%;z-index:3}
+.campaign-pack-2{right:-10%;transform:rotate(9deg) scale(.86);transform-origin:50% 85%;z-index:2}
+.campaign-coldcuts .campaign-pack-0{left:-4%;transform:rotate(-8deg) scale(.95)}
+.campaign-coldcuts .campaign-pack-1{left:21%;transform:scale(.88);transform-origin:50% 85%}
+.campaign-coldcuts .campaign-pack-2{right:-10%;transform:rotate(-22deg);transform-origin:50% 85%}
+.campaign-dots{display:flex;justify-content:center;align-items:center;height:32px}
+.campaign-dots button{width:32px;height:32px;background:transparent;border:0;padding:0;display:grid;place-items:center;cursor:pointer}
+.campaign-dots span{width:6px;height:6px;border-radius:5px;background:#a6aeb5}
+.campaign-dots button[aria-pressed=true] span{width:17px;background:#df0031}
+.campaign-carousel button:focus-visible{outline:3px solid #143e31;outline-offset:3px}
+@media(max-width:900px) and (min-width:701px){.campaign-copy{padding-left:28px}.campaign-products{margin-right:10px;height:260px}.campaign-copy h2{font-size:30px}}
+@media(max-width:700px){
+ .campaign-slide{border-radius:22px}
+ .campaign-native{display:block;min-height:234px}
+ .campaign-copy{padding:24px 18px 20px;width:100%}
+ .campaign-copy h2{font-size:23px;line-height:1.12;letter-spacing:-.65px;margin-bottom:12px}
+ .campaign-copy p{font-size:12px;line-height:1.45;margin-bottom:18px;max-width:52%}
+ .campaign-cta{font-size:12px;min-height:40px;padding:10px 13px;gap:12px;border-radius:12px}
+ .campaign-copy small{font-size:9px;margin-top:9px}
+ .campaign-products{position:absolute;right:0;bottom:0;width:53%;height:140px;margin:0;z-index:2;pointer-events:none}
+ .campaign-pack{bottom:4px;height:94%;width:72%}
+ .campaign-pack-0{left:-10%}.campaign-pack-1{left:10%}.campaign-pack-2{right:-13%}
+ .campaign-stage{bottom:8px;left:0;right:0;height:16px}
+ .campaign-ribbon{inset:0 -14% -15% 0;border-radius:32px}
+ .campaign-coldcuts .campaign-pack-0{left:-7%}.campaign-coldcuts .campaign-pack-1{left:12%}.campaign-coldcuts .campaign-pack-2{right:-14%}
+ .campaign-coldcuts .campaign-products{height:145px;width:51%}
+}
+@media(max-width:350px){.campaign-copy h2{font-size:21px}.campaign-copy{padding-left:16px}.campaign-products{width:49%;height:122px}.campaign-coldcuts .campaign-products{width:47%;height:128px}.campaign-copy p{font-size:11px}.campaign-cta{padding:10px;font-size:11px;gap:8px}}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Cart.css";
+import PaymentNotice from "../PaymentNotice/PaymentNotice";
 import { Link, useNavigate } from "react-router-dom";
 import CartEmpty from "@mui/icons-material/AddShoppingCart";
 import CartLogo from "@mui/icons-material/ShoppingCart";
@@ -85,10 +86,10 @@ export default function Cart() {
           <div className="cart-header-container">
             <div className="red-underline">
               <h1 className="cart-title">
-                MI CARRITO <CartLogo />
+                Mi carrito <CartLogo />
               </h1>
             </div>
-            <Link to="/productos">
+            <Link to="/">
               <h3 className="continue-shopping">Seguir comprando</h3>
             </Link>
           </div>
@@ -138,11 +139,11 @@ export default function Cart() {
                           </div>
 
                           <div className="cart-product-details">
-                            <h3>{item.title}</h3>
+                            <h3>{item.title.replace(/\s*\(peso[^)]*\)/gi, "").replace(/\s*Precio_x\s*Kg.*$/i, "").trim()}</h3>
 
                             {/* 👇 ACA MOSTRAMOS HORMAS / KG SIN ROMPER CSS */}
                             <p style={{ fontSize: 13, opacity: 0.8 }}>
-                              {item.quantity} {isPesado ? "Hormas" : "Unidades"}
+                              {item.quantity} {isPesado ? (item.quantity === 1 ? "Horma" : "Hormas") : (item.quantity === 1 ? "Unidad" : "Unidades")}
                               {isPesado && capKg > 0 && (
                                 <> (≈ {realKg.toFixed(2)} kg)</>
                               )}
@@ -159,7 +160,7 @@ export default function Cart() {
 
                         {/* PRECIO */}
                         <p className="price">
-                          ${item.price.toFixed(2)}
+                          {item.price.toLocaleString("es-AR", { style: "currency", currency: "ARS" })}
                           {isPesado && " / kg"}
                         </p>
 
@@ -171,7 +172,7 @@ export default function Cart() {
                                 type="number"
                                 step={0.1}
                                 value={item.quantity === 0 ? "" : item.quantity}
-                                className="quantity-input"
+                                className="quantity-input" aria-label={`Cantidad de hormas de ${item.title}`}
                                 onChange={(e) => {
                                   const value = e.target.value;
 
@@ -243,7 +244,7 @@ export default function Cart() {
 
                         {/* TOTAL */}
                         <p className="total">
-                          ${getItemTotal(item).toFixed(2)}
+                          {getItemTotal(item).toLocaleString("es-AR", { style: "currency", currency: "ARS" })}
                         </p>
                       </li>
                     );
@@ -252,14 +253,17 @@ export default function Cart() {
               </div>
 
               <div className="cart-summary">
+                <PaymentNotice />
                 <div className="cart-summary-subcont">
                   <p>
-                    Sub-total <span>${calculateTotal()}</span>
+                    Subtotal <span>{Number(calculateTotal()).toLocaleString("es-AR", { style: "currency", currency: "ARS" })}</span>
                   </p>
                 </div>
+                {cartItems.some((item) => item.typeOfFractionation === "Pesado") && <div className="cart-weight-note">Los importes de productos por peso son estimados según los kilos indicados.</div>}
                 <button className="detail-button" onClick={handleViewDetails}>
-                  Ver detalle
+                  Revisar pedido →
                 </button>
+<a className="cart-help-link" href="https://wa.me/5492616605818?text=Hola!%20Necesito%20ayuda%20con%20mi%20pedido%20en%20la%20tienda." target="_blank" rel="noopener noreferrer">¿Necesitás ayuda? <strong>Escribinos</strong></a>
               </div>
             </>
           )}

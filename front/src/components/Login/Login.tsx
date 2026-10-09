@@ -1,3 +1,4 @@
+import { WhatsAppOrder } from "../StoreOptions/StoreOptions";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -6,154 +7,14 @@ import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { useLoginMutation, useRegisterMutation, useForgotPasswordMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import "./Login.css";
+import { HTML_PASSWORD_PATTERN, PASSWORD_HELP, passwordRules, getRegistrationErrors, getRegisterErrorMessage } from "./registrationValidation";
 import BackIcon from "@mui/icons-material/ArrowBack";
-import Logo from "../../assets/logotienda.png";
+import Logo from "../../assets/logo-catalogo.png";
 
 /* =====================================================
    VALIDACIONES
 ===================================================== */
-const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$/;
-const phoneRegex = /^\d{8,15}$/;
-const dniRegex = /^\d{8}$/;
 const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
-
-const genericRegisterErrorRegex =
-  /error al crear usuario|no pudimos crear la cuenta|internal server error|request failed/i;
-
-const extractValidationMessage = (text: string): string | null => {
-  const normalized = text.replace(/\s+/g, " ").trim();
-
-  const fullMatch = normalized.match(/validation failed:\s*(.+)$/i);
-  if (fullMatch?.[1]) {
-    return fullMatch[1]
-      .replace(/^(password|phone|email|dni)\s*:\s*/i, "")
-      .replace(/^storeuser\s+validation\s+failed:\s*/i, "")
-      .trim();
-  }
-
-  const passwordMatch = normalized.match(/la contrase[ñn]a[^.]*\.?/i);
-  if (passwordMatch?.[0]) return passwordMatch[0].trim();
-
-  const phoneMatch = normalized.match(/(tel[eé]fono|phone)[^.]*\.?/i);
-  if (phoneMatch?.[0]) return phoneMatch[0].trim();
-
-  return null;
-};
-
-const getRegisterErrorMessage = (err: any): string => {
-  const status = err?.status;
-  const data = err?.data ?? {};
-
-  const candidateTexts = [
-    typeof data === "string" ? data : null,
-    data?.message,
-    data?.error,
-    data?.details,
-    err?.error,
-    err?.message,
-  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
-
-  for (const text of candidateTexts) {
-    const extractedMessage = extractValidationMessage(text);
-    if (extractedMessage) {
-      return extractedMessage;
-    }
-  }
-
-  const nestedErrors = [
-    data?.errors,
-    data?.error?.errors,
-    data?.details?.errors,
-    data?.details,
-  ];
-
-  for (const candidate of nestedErrors) {
-    if (candidate && typeof candidate === "object") {
-      const messages = Object.values(candidate)
-        .map((error: any) => error?.message || error)
-        .filter((msg): msg is string => typeof msg === "string" && msg.trim().length > 0);
-
-      if (messages.length > 0) {
-        return messages.join(" ");
-      }
-    }
-  }
-
-  const duplicateFields = Array.isArray(data?.duplicateFields)
-    ? data.duplicateFields.map((field: unknown) => String(field).toLowerCase())
-    : [];
-
-  const rawMessage = [data?.message, data?.error, err?.message, ...duplicateFields]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  const isValidationError =
-    /validation failed|validatorerror|datos inv[aá]lidos|invalid/.test(rawMessage);
-
-  if (isValidationError) {
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message
-        .replace(/^\w+\s+validation failed:\s*/i, "")
-        .trim();
-    }
-
-    if (/password|contrase[ñn]a/.test(rawMessage)) {
-      return "La contraseña debe contener al menos una letra mayúscula, una minúscula y un número.";
-    }
-
-    if (/\bphone\b|tel[eé]fono/.test(rawMessage)) {
-      return "El teléfono no es válido. Ingresá solo números.";
-    }
-
-    return "Algunos datos no son válidos. Revisalos e intentá nuevamente.";
-  }
-
-  const isDuplicateError =
-    status === 409 ||
-    /duplicate|duplicad|unique|already exists|ya existe|p2002/.test(rawMessage);
-
-  if (duplicateFields.includes("dni") || /\bdni\b/.test(rawMessage)) {
-    return "Ya existe una cuenta con ese DNI. Si ya tenes cuenta, inicia sesion.";
-  }
-
-  if (
-    duplicateFields.includes("email") ||
-    /\bemail\b|correo/.test(rawMessage)
-  ) {
-    return "Ya existe una cuenta con ese email. Proba iniciar sesion o usar otro email.";
-  }
-
-  if (
-    duplicateFields.includes("username") ||
-    duplicateFields.includes("alias") ||
-    /username|usuario|alias/.test(rawMessage)
-  ) {
-    return "Ya existe una cuenta con esos datos. Proba con otros valores.";
-  }
-
-  if (isDuplicateError) {
-    return "Ya existe una cuenta con esos datos. Revisa DNI, email o alias.";
-  }
-
-  if (
-    typeof data?.message === "string" &&
-    data.message.trim() &&
-    !genericRegisterErrorRegex.test(data.message)
-  ) {
-    return data.message;
-  }
-
-  if (typeof err?.error === "string") {
-    const extractedMessage = extractValidationMessage(err.error);
-    if (extractedMessage) {
-      return extractedMessage;
-    }
-  }
-
-  return "No pudimos crear la cuenta. Intenta nuevamente en unos minutos.";
-};
 
 interface RegisterFormData {
   username: string; // queda en el state pero ya no se pide en el formulario
@@ -204,6 +65,9 @@ const Login: React.FC = () => {
 
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerValidated, setRegisterValidated] = useState(false);
+  const [registerTouched, setRegisterTouched] = useState<Record<string, boolean>>({});
+  const registerFieldErrors = getRegistrationErrors({ ...registerData });
+  const fieldInvalid = (name: string) => Boolean((registerValidated || registerTouched[name]) && registerFieldErrors[name]);
   const [registerError, setRegisterError] = useState("");
   const [registerErrorType, setRegisterErrorType] =
     useState<RegisterErrorType>(null);
@@ -221,7 +85,8 @@ const Login: React.FC = () => {
 
   const mapRef = useRef<HTMLDivElement | null>(null);
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'distrolac-google-maps',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
@@ -232,6 +97,7 @@ const Login: React.FC = () => {
 
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, [showRegister]);
 
   // ================= FORGOT PASSWORD =================
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -346,48 +212,14 @@ const Login: React.FC = () => {
     setEmailServerError(false);
 
     const form = e.currentTarget;
-    if (!form.checkValidity()) {
-      e.stopPropagation();
-      setRegisterError("Completá correctamente todos los campos requeridos.");
+    const errors = getRegistrationErrors({ ...registerData });
+    const firstInvalid = ["firstName", "lastName", "phone", "address", "email", "dni", "password", "confirmPassword"].find((name) => errors[name]);
+    if (firstInvalid) {
+      setRegisterError(errors[firstInvalid]);
       setRegisterErrorType("client");
-      return;
-    }
-
-    if (!nameRegex.test(registerData.firstName)) {
-      setRegisterError("Nombre inválido.");
-      setRegisterErrorType("client");
-      return;
-    }
-
-    if (!nameRegex.test(registerData.lastName)) {
-      setRegisterError("Apellido inválido.");
-      setRegisterErrorType("client");
-      return;
-    }
-
-    if (!dniRegex.test(registerData.dni)) {
-      setRegisterError("DNI inválido. Debe tener exactamente 8 dígitos.");
-      setRegisterErrorType("client");
-      return;
-    }
-
-    if (!phoneRegex.test(registerData.phone)) {
-      setRegisterError("Teléfono inválido. Debe tener entre 8 y 15 dígitos.");
-      setRegisterErrorType("client");
-      return;
-    }
-
-    if (!passwordRegex.test(registerData.password)) {
-      setRegisterError(
-        "La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número."
-      );
-      setRegisterErrorType("client");
-      return;
-    }
-
-    if (registerData.password !== registerData.confirmPassword) {
-      setRegisterError("Las contraseñas no coinciden.");
-      setRegisterErrorType("client");
+      const field = form.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`);
+      field?.focus();
+      field?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
 
@@ -398,7 +230,7 @@ const Login: React.FC = () => {
         firstName: registerData.firstName.trim(),
         lastName: registerData.lastName.trim(),
         dni: registerData.dni.trim(),
-        email: registerData.email.trim(),
+        email: registerData.email.trim().toLowerCase(),
         address: registerData.address.trim(),
         phone: registerData.phone.trim(),
         alias: registerData.alias.trim(),
@@ -506,7 +338,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="div-register-container">
-            <h1 className="title-auth">Registrarse</h1>
+            <h1 className="title-auth">Creá tu cuenta</h1><p className="auth-intro">Guardá tus datos para hacer este pedido y los próximos más fácil.</p>
             <hr className="red-line-login" />
             {registerError && (
               <Alert
@@ -516,126 +348,18 @@ const Login: React.FC = () => {
               </Alert>
             )}
 
+            {registerErrorType === "server" && <div className="auth-recovery">
+              <button type="button" onClick={() => { setUsernameOrEmail(registerData.email); setShowRegister(false); setShowLogin(true); }}>Ya tengo cuenta</button>
+              <button type="button" onClick={() => { setForgotEmail(registerData.email); setForgotError(""); setForgotSuccess(""); setForgotEmailValid(true); setShowForgotModal(true); }}>Recuperar contraseña</button>
+            </div>}
             <Form
               noValidate
               validated={registerValidated}
               onSubmit={handleRegister}
               className="register-form "
+              onBlurCapture={(e) => { const target = e.target; const name = target instanceof HTMLInputElement ? target.name : ""; if (name) setRegisterTouched((prev) => ({ ...prev, [name]: true })); }}
             >
-              <div>
-                <Form.Group controlId="registerEmail">
-                  <Form.Label className="auth-label">Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={registerData.email}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    isInvalid={emailServerError}
-                    aria-describedby="registerEmailFeedback"
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerEmailFeedback"
-                  >
-                    {emailServerError ? "Este email ya está registrado" : "Ingrese un email válido."}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-
-              <div>
-                <Form.Group controlId="registerDNI">
-                  <Form.Label className="auth-label">DNI</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="dni"
-                    placeholder="DNI"
-                    value={registerData.dni}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    isInvalid={dniServerError}
-                    aria-describedby="registerDNIFeedback"
-                    className="input-form"
-                    minLength={8}
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerDNIFeedback"
-                  >
-                    {dniServerError ? "El DNI ya está registrado. Por favor usa otro." : "Ingrese un DNI válido."}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-
-              <div>
-                <Form.Group controlId="registerPassword">
-                  <Form.Label className="auth-label">Contraseña</Form.Label>
-                  <Form.Control
-                    type={showRegisterPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Contraseña"
-                    value={registerData.password}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    aria-describedby="registerPasswordFeedback"
-                    className="input-form"
-                  />
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerPasswordFeedback"
-                  >
-                    La contraseña debe tener al menos 6 caracteres e incluir una
-                    letra mayúscula, una minúscula y un número.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-
-              <div>
-                <Form.Group controlId="registerConfirmPassword">
-                  <Form.Label className="auth-label">
-                    Confirmar contraseña
-                  </Form.Label>
-                  <Form.Control
-                    type={showRegisterPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    placeholder="Confirmar contraseña"
-                    value={registerData.confirmPassword}
-                    onChange={handleRegisterChange}
-                    required
-                    disabled={isRegisterLoading}
-                    isInvalid={
-                      registerValidated &&
-                      registerData.password !== registerData.confirmPassword
-                    }
-                    aria-describedby="registerConfirmPasswordFeedback"
-                    className="input-form"
-                  />
-
-                  <Form.Control.Feedback
-                    type="invalid"
-                    id="registerConfirmPasswordFeedback"
-                  >
-                    Las contraseñas no coinciden.
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </div>
-
-              <Form.Group controlId="registerShowPassword">
-                <Form.Check
-                  type="checkbox"
-                  label="Mostrar contraseña"
-                  checked={showRegisterPassword}
-                  onChange={(e) => setShowRegisterPassword(e.target.checked)}
-                  disabled={isRegisterLoading}
-                />
-              </Form.Group>
-
-              <div className="delivery-auth">
+<div className="delivery-auth">
                 <h1 className="title-auth">Datos del envío</h1>
 
                 <div className="name-lastname-auth">
@@ -644,16 +368,15 @@ const Login: React.FC = () => {
                       <Form.Label className="auth-label">Nombre</Form.Label>
                       <Form.Control
                         type="text"
-                        name="firstName"
+                        name="firstName" autoComplete="given-name" isInvalid={fieldInvalid("firstName")}
                         placeholder="Nombre"
                         value={registerData.firstName}
                         onChange={handleRegisterChange}
                         required
-                        pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,}$"
                         disabled={isRegisterLoading}
                         className="input-form"
                       />
-                    </Form.Group>
+                    <div className="invalid-feedback" style={{display: fieldInvalid("firstName") ? "block" : "none"}}>{registerFieldErrors.firstName}</div></Form.Group>
                   </div>
 
                   <div>
@@ -661,7 +384,7 @@ const Login: React.FC = () => {
                       <Form.Label className="auth-label">Apellido</Form.Label>
                       <Form.Control
                         type="text"
-                        name="lastName"
+                        name="lastName" autoComplete="family-name" isInvalid={fieldInvalid("lastName")}
                         placeholder="Apellido"
                         value={registerData.lastName}
                         onChange={handleRegisterChange}
@@ -669,7 +392,7 @@ const Login: React.FC = () => {
                         disabled={isRegisterLoading}
                         className="input-form"
                       />
-                    </Form.Group>
+                    <div className="invalid-feedback" style={{display: fieldInvalid("lastName") ? "block" : "none"}}>{registerFieldErrors.lastName}</div></Form.Group>
                   </div>
                 </div>
 
@@ -678,7 +401,7 @@ const Login: React.FC = () => {
                     <Form.Label className="auth-label">Teléfono</Form.Label>
                     <Form.Control
                       type="tel"
-                      name="phone"
+                      name="phone" autoComplete="tel" isInvalid={fieldInvalid("phone")}
                       placeholder="Ingrese su teléfono"
                       value={registerData.phone}
                       onChange={handleRegisterChange}
@@ -687,7 +410,7 @@ const Login: React.FC = () => {
                       disabled={isRegisterLoading}
                       className="input-form"
                     />
-                  </Form.Group>
+                  <div className="invalid-feedback" style={{display: fieldInvalid("phone") ? "block" : "none"}}>{registerFieldErrors.phone}</div></Form.Group>
                 </div>
 
                 <div>
@@ -695,6 +418,7 @@ const Login: React.FC = () => {
                     <Form.Label className="auth-label">Dirección</Form.Label>
 
                     <InputGroup className="adress-group">
+                      {loadError && <p role="status">No pudimos cargar el mapa. Podés escribir tu dirección completa y continuar.</p>}
                       {isLoaded ? (
                         <Autocomplete
                           onLoad={(instance) => setAutocomplete(instance)}
@@ -723,7 +447,7 @@ const Login: React.FC = () => {
                         >
                           <Form.Control
                             type="text"
-                            name="address"
+                            name="address" autoComplete="street-address" isInvalid={fieldInvalid("address")}
                             placeholder="Ingresa o busca tu dirección"
                             value={registerData.address}
                             onChange={handleRegisterChange}
@@ -735,26 +459,139 @@ const Login: React.FC = () => {
                       ) : (
                         <Form.Control
                           type="text"
-                          placeholder="Cargando Google Maps..."
-                          disabled
+                          name="address" value={registerData.address} onChange={handleRegisterChange}
+                        placeholder="Calle, número y localidad" autoComplete="street-address"
+                        required disabled={isRegisterLoading} isInvalid={fieldInvalid("address")}
                           className="input-form adress-input"
                         />
                       )}
 
                       <Button
                         variant="outline-secondary"
-                        onClick={() => setShowMapModal(true)}
-                        disabled={isRegisterLoading}
+                        onClick={() => setShowMapModal(true)} disabled={isRegisterLoading || !isLoaded}
                         className="input-form"
                       >
                         Mapa
                       </Button>
                     </InputGroup>
-                  </Form.Group>
+                  <div className="invalid-feedback" style={{display: fieldInvalid("address") ? "block" : "none"}}>{registerFieldErrors.address}</div></Form.Group>
                 </div>
               </div>
 
-              <div className="buttons-container">
+              <section className="account-auth"><h2>Datos de tu cuenta</h2>              <div>
+                <Form.Group controlId="registerEmail">
+                  <Form.Label className="auth-label">Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email" autoComplete="email" inputMode="email"
+                    placeholder="Email"
+                    value={registerData.email}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    isInvalid={emailServerError || fieldInvalid("email")}
+                    aria-describedby="registerEmailFeedback"
+                    className="input-form"
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerEmailFeedback"
+                  >
+                    {emailServerError ? "Ese email ya tiene una cuenta. Iniciá sesión o recuperá tu contraseña." : registerFieldErrors.email || "Revisá el email."}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+
+              <div>
+                <Form.Group controlId="registerDNI">
+                  <Form.Label className="auth-label">DNI</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="dni" autoComplete="off" inputMode="numeric" maxLength={8} pattern="[0-9]{8}"
+                    placeholder="DNI"
+                    value={registerData.dni}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    isInvalid={dniServerError || fieldInvalid("dni")}
+                    aria-describedby="registerDNIFeedback"
+                    className="input-form"
+                    minLength={8}
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerDNIFeedback"
+                  >
+                    {dniServerError ? "El DNI ya está registrado. Iniciá sesión o recuperá tu contraseña; no uses otro DNI." : registerFieldErrors.dni || "Revisá el DNI."}
+                  </Form.Control.Feedback>
+                <small className="auth-help">Usamos tu DNI para identificar tu cuenta y generar tu alias de transferencias.</small></Form.Group>
+              </div>
+
+              <div>
+                <Form.Group controlId="registerPassword">
+                  <Form.Label className="auth-label">Contraseña</Form.Label>
+                  <Form.Control
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="password" autoComplete="new-password" minLength={8} pattern={HTML_PASSWORD_PATTERN} isInvalid={fieldInvalid("password")}
+                    placeholder="Contraseña"
+                    value={registerData.password}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    aria-describedby="registerPasswordFeedback"
+                    className="input-form"
+                  />
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerPasswordFeedback"
+                  >
+                    {PASSWORD_HELP}
+                  </Form.Control.Feedback>
+                <ul className="password-checklist" aria-label="Requisitos de contraseña">{passwordRules(registerData.password).map((rule) => <li key={rule.label} data-ok={rule.ok}>{rule.ok ? "✓" : "○"} {rule.label}</li>)}</ul></Form.Group>
+              </div>
+
+              <div>
+                <Form.Group controlId="registerConfirmPassword">
+                  <Form.Label className="auth-label">
+                    Confirmar contraseña
+                  </Form.Label>
+                  <Form.Control
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="confirmPassword" autoComplete="new-password"
+                    placeholder="Confirmar contraseña"
+                    value={registerData.confirmPassword}
+                    onChange={handleRegisterChange}
+                    required
+                    disabled={isRegisterLoading}
+                    isInvalid={
+                      (registerValidated || registerTouched.confirmPassword) &&
+                      registerData.password !== registerData.confirmPassword
+                    }
+                    aria-describedby="registerConfirmPasswordFeedback"
+                    className="input-form"
+                  />
+
+                  <Form.Control.Feedback
+                    type="invalid"
+                    id="registerConfirmPasswordFeedback"
+                  >
+                    Las contraseñas no coinciden.
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
+
+              <Form.Group controlId="registerShowPassword">
+                <Form.Check
+                  type="checkbox"
+                  label="Mostrar contraseña"
+                  checked={showRegisterPassword}
+                  onChange={(e) => setShowRegisterPassword(e.target.checked)}
+                  disabled={isRegisterLoading}
+                />
+              </Form.Group>
+
+              </section>
+<div className="buttons-container">
                 <div
                   onClick={() => {
                     if (showLogin) {
@@ -780,7 +617,7 @@ const Login: React.FC = () => {
                   {isRegisterLoading ? "Creando cuenta..." : "Crear Cuenta"}
                 </Button>
               </div>
-            </Form>
+            </Form><WhatsAppOrder />
           </div>
         </div>
       </div>
@@ -788,7 +625,7 @@ const Login: React.FC = () => {
       <div className={showLogin ? "right-container" : "hidden-login"}>
         <div id="login-register-div" className="login-register-div">
           <div className="div-login-container">
-            <h1 className="title-auth">Acceder</h1>
+            <div className="logo-container"><img src={Logo} alt="Distrolac" className="distro-logo-login" /></div><h1 className="title-auth">Qué bueno verte de nuevo</h1><p className="auth-intro">Ingresá a tu cuenta para continuar. Tu carrito sigue guardado.</p>
             <hr className="red-line-login" />
             {error && <Alert variant="danger">{error}</Alert>}
 
@@ -803,7 +640,7 @@ const Login: React.FC = () => {
                 <Form.Control
                   type="text"
                   placeholder="Email o usuario"
-                  value={usernameOrEmail}
+                  autoComplete="username" value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   required
                   disabled={isLoginLoading}
@@ -816,7 +653,7 @@ const Login: React.FC = () => {
                 <Form.Control
                   type={showPassword ? "text" : "password"}
                   placeholder="Contraseña"
-                  value={password}
+                  autoComplete="current-password" value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoginLoading}
@@ -862,17 +699,17 @@ const Login: React.FC = () => {
 
               <div className="button-register-container">
                 <hr className="red-line-login" />
-                <a
+                <p className="register-invitation">¿Es tu primera compra?</p><button type="button"
                   onClick={() => {
                     setShowRegister(true);
                     setShowLogin(false);
                   }}
                   className="button-register"
                 >
-                  No tienes cuenta?, Regístrate
-                </a>
+                  Creá tu cuenta
+                </button>
               </div>
-            </Form>
+            </Form><WhatsAppOrder />
           </div>
         </div>
       </div>

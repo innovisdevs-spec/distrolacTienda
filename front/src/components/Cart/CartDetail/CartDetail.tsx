@@ -1,3 +1,4 @@
+import { formatMoney } from "../../../utils/money";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -263,24 +264,23 @@ export default function CartDetail() {
 
                         {!isPesado && (
                           <>
-                            <p>${item.price.toFixed(2)}</p>
+                            <p>{formatMoney(item.price)}</p>
                             <p>
-                              {item.quantity} unidades · Subtotal $
-                              {subtotalProducto.toFixed(2)}
+                              {item.quantity} unidades · Subtotal {formatMoney(subtotalProducto)}
                             </p>
                           </>
                         )}
 
                         {isPesado && kgTotales && (
                           <>
-                            <p>${item.price.toFixed(2)} / kg</p>
+                            <p>{formatMoney(item.price)} / kg</p>
                             <p>
                               {item.quantity} horma
                               {item.quantity > 1 && "s"} (~
                               {kgTotales.toFixed(2)} kg)
                             </p>
                             <p>
-                              Subtotal producto: ${subtotalProducto.toFixed(2)}
+                              Subtotal producto: {formatMoney(subtotalProducto)}
                             </p>
                           </>
                         )}
@@ -294,7 +294,7 @@ export default function CartDetail() {
                 <div className="cartdetail-totals">
                   <div>
                     <span>Subtotal</span>
-                    <span className="subtotal-span">${subtotal}</span>
+                    <span className="subtotal-span">{formatMoney(subtotal)}</span>
                   </div>
                   <div>
                     <span>Envío</span>
@@ -302,7 +302,7 @@ export default function CartDetail() {
                   </div>
                   <div className="cartdetail-total-row">
                     <span>Total</span>
-                    <span>${subtotal}</span>
+                    <span>{formatMoney(subtotal)}</span>
                   </div>
                 </div>
               </div>

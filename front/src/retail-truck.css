@@ -1,0 +1,25 @@
+/* Real delivery photography, isolated to the delivery slide. */
+.retail-banner-1{position:relative;isolation:isolate;display:block;min-height:390px;background:#102e2b;border:0}
+.retail-banner-1[hidden]{display:none}
+.retail-banner-1 .retail-products{display:none}
+.retail-banner-1::before{content:"";position:absolute;z-index:-2;inset:0 0 0 36%;background:url('/distrolac-reparto-real.jpg') center 54%/cover no-repeat}
+.retail-banner-1::after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#102e2b 0%,#102e2b 34%,#102e2bea 43%,#102e2b3b 66%,#102e2b08 100%)}
+.retail-banner-1 .retail-copy{padding:44px 42px;max-width:59%;position:relative}
+.retail-banner-1 .retail-eyebrow{color:#e8efaa;font-size:11px;letter-spacing:1.8px;margin-bottom:18px}
+.retail-banner-1 .retail-copy h2{color:#fff;font-size:44px;line-height:1.06;letter-spacing:-1.4px;margin-bottom:20px}
+.retail-banner-1 .retail-copy em{color:#e8efaa}
+.retail-banner-1 .retail-copy p{color:#f2f6f3;font-size:17px;line-height:1.5}
+.retail-banner-1 .retail-cta{background:#fff;color:#153c32;border-radius:30px;padding:13px 22px}
+.retail-banner-1 .retail-copy small{color:#d7e3df;margin-top:16px;font-size:11px}
+@media(max-width:900px) and (min-width:701px){.retail-banner-1 .retail-copy{max-width:66%;padding:32px}.retail-banner-1 .retail-copy h2{font-size:35px}}
+@media(max-width:700px){
+ .retail-banner-1{min-height:420px}
+ .retail-banner-1::before{inset:0;background-position:61% 59%;background-size:cover}
+ .retail-banner-1::after{background:linear-gradient(90deg,#102e2bf0 0%,#102e2bc9 38%,#102e2b30 100%),linear-gradient(0deg,#102e2bde,transparent 45%)}
+ .retail-banner-1 .retail-copy{max-width:100%;padding:28px 20px;min-height:420px;display:flex;flex-direction:column;align-items:flex-start}
+ .retail-banner-1 .retail-eyebrow{font-size:9px;letter-spacing:1px;margin-bottom:14px}
+ .retail-banner-1 .retail-copy h2{font-size:31px;line-height:1.06;letter-spacing:-.9px;max-width:270px;margin-bottom:14px}
+ .retail-banner-1 .retail-copy p{font-size:13px;max-width:210px;margin-bottom:18px}
+ .retail-banner-1 .retail-cta{margin-top:auto;font-size:12px;padding:12px 18px}
+ .retail-banner-1 .retail-copy small{font-size:9px;max-width:none;margin-top:12px}
+}

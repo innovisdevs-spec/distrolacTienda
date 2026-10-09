@@ -1,0 +1,60 @@
+.login-page{--auth-red:#ec0033;--auth-ink:#102b42;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;background:#f6f8fa;min-height:100vh;padding:32px 20px 50px;gap:16px;font-family:Arial,Helvetica,sans-serif;color:var(--auth-ink)}
+.login-page *{box-sizing:border-box}
+.login-page .hidden-register,.login-page .hidden-login{display:none!important}
+.login-page .checkout-alert-container{position:static;transform:none;width:100%;max-width:620px;margin:0;order:1}
+.login-page .checkout-alert-container .alert{background:#edf5f9;border:1px solid #d9e7ef;border-radius:12px;color:#264f65;font-size:14px;line-height:1.5;margin:0;padding:13px 18px}
+.login-page .left-container,.login-page .right-container{display:block;flex:none;width:100%;max-width:620px;min-height:0;height:auto;background:#fff;border:1px solid #e6eaf0;border-radius:20px;padding:28px;box-shadow:0 8px 30px #102b4205;order:2}
+.login-page .left-container>div,.login-page .login-register-div,.login-page .div-register-container,.login-page .div-login-container{display:block;width:100%;max-width:none;margin:0;padding:0;min-height:0}
+.login-page .logo-container{display:flex;justify-content:center;margin:0 0 22px;padding:0}
+.login-page .distro-logo-login{width:210px;max-width:100%;height:65px;object-fit:contain;margin:0}
+.login-page .title-auth{font-family:inherit;font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-.7px;margin:0 0 10px;text-align:left;color:var(--auth-ink)}
+.login-page .auth-intro{font-size:14px;line-height:1.5;color:#657786;margin:0 0 20px}
+.login-page .red-line-login{display:none}
+.login-page .register-form,.login-page .login-form{display:flex;flex-direction:column;gap:15px;width:100%;padding:0;margin:0}
+.login-page .register-form>div,.login-page .login-form>div{width:100%;margin:0}
+.login-page .auth-label{font-family:inherit;color:var(--auth-ink);font-weight:600;font-size:13px;line-height:1.4;margin:0 0 6px}
+.login-page .input-form{font-family:inherit;font-size:16px!important;line-height:1.4;color:var(--auth-ink);border:1px solid #dbe1e8;border-radius:10px;padding:12px 13px;min-height:46px;height:auto;width:100%;margin:0;background:#fff;box-shadow:none}
+.login-page .input-form:focus{border-color:#365c78;box-shadow:0 0 0 3px #365c7818}
+.login-page .input-form.is-invalid,.login-page .was-validated .input-form:invalid{border-color:#d32d43}
+.login-page .invalid-feedback{font-size:12px;line-height:1.5;margin-top:5px}
+.login-page .auth-help{display:block;font-size:12px;line-height:1.5;color:#657786;margin:6px 0 0}
+.login-page .password-checklist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin:9px 0 0;padding:0;font-size:12px;color:#667988;line-height:1.5}
+.login-page .password-checklist li[data-ok=true]{color:#19704a}
+.login-page .password-checklist li:last-child{grid-column:1/-1}
+.login-page .form-check{display:flex;align-items:center;gap:9px;padding:0;min-height:30px;font-size:13px}
+.login-page .form-check-input{position:static;margin:0;flex-shrink:0;width:18px;height:18px}
+.login-page .form-check-input:checked{background-color:var(--auth-red);border-color:var(--auth-red)}
+.login-page .delivery-auth{display:flex;flex-direction:column;gap:15px;border-top:1px solid #e8edf1;padding-top:20px;margin-top:4px}
+.login-page .delivery-auth .title-auth{font-size:21px;margin:0}
+.login-page .name-lastname-auth{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:0}
+.login-page .name-lastname-auth>div{width:auto;min-width:0}
+.login-page .adress-group{display:flex;flex-wrap:nowrap;width:100%;gap:8px}
+.login-page .adress-group>div{flex:1;min-width:0}
+.login-page .adress-group>.adress-input{flex:1;min-width:0}
+.login-page .adress-group>button{width:auto;flex:0 0 auto;padding:10px 12px;font-size:13px!important;border-radius:10px!important;color:#365c78;background:#f7f9fb}
+.login-page .buttons-container{display:flex;align-items:center;gap:14px;padding:8px 0 0;margin:0}
+.login-page .auth-btn{font-family:inherit;background:var(--auth-red);border:0;color:#fff;border-radius:11px;min-height:48px;height:auto;padding:12px 18px;font-size:16px;font-weight:700;box-shadow:none;flex:1;width:100%;margin:0}
+.login-page .auth-btn:hover{background:#c9002b}
+.login-page .auth-btn{background:#ec0033!important;max-width:none!important;min-width:0;white-space:normal}
+.login-page .auth-btn:hover{background:#c9002b!important}
+.login-page .buttons-container .back-btn{flex:0 0 auto;width:auto;max-width:none;margin:0}
+.login-page .adress-input{border-radius:10px!important}
+.login-page .auth-btn:disabled{opacity:.65}
+.login-page .back-btn{font-size:13px;cursor:pointer;color:#667988}
+.login-page .back-btn p{margin:0}.login-page .back-btn svg{width:18px}
+.login-page .login-button-container{margin:0;padding:0;width:100%}
+.login-page .forgot-password-container{margin:0!important;padding:0!important}
+.login-page .forgot-password-link,.login-page .button-register{font-family:inherit;font-size:14px;color:var(--auth-red);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.login-page .button-register-container{display:block!important;border-top:1px solid #e8edf1;padding-top:18px;margin-top:3px!important;text-align:center}
+.login-page .input-form{border-color:#dbe1e8!important}
+.login-page .input-form:focus{border-color:#365c78!important}
+.login-page .input-form.is-invalid,.login-page .was-validated .input-form:invalid{border-color:#d32d43!important}
+.login-page .auth-recovery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+.login-page .auth-recovery button{background:#fff;border:1px solid #dce3ea;border-radius:9px;color:#24475e;padding:10px 13px;font-size:13px}
+.login-page [role=alert]{font-size:13px;line-height:1.5;border-radius:10px;overflow-wrap:anywhere}
+.login-page button:focus-visible,.login-page a:focus-visible,.login-page .back-btn:focus-visible{outline:2px solid #24475e;outline-offset:3px}
+@media(max-width:650px){.login-page{padding:16px 12px 30px;gap:12px}.login-page .left-container,.login-page .right-container{padding:20px 17px;border-radius:16px}.login-page .title-auth{font-size:25px}.login-page .checkout-alert-container .alert{font-size:13px;padding:12px 15px}.login-page .distro-logo-login{width:185px;height:55px}.login-page .logo-container{margin-bottom:17px}.login-page .password-checklist{grid-template-columns:1fr}.login-page .password-checklist li:last-child{grid-column:auto}.login-page .auth-intro{font-size:13px}.login-page .register-form,.login-page .login-form{gap:14px}}
+
+.login-page .register-invitation{font-size:17px;font-weight:700;color:#102b42;margin:0 0 12px;text-align:center}
+.login-page .button-register-container .button-register{display:block;width:100%;min-height:50px;border:2px solid #ec0033;border-radius:11px;background:#fff2f5;color:#bd0029;font-size:18px;font-weight:700;line-height:1.4;padding:12px 16px;text-align:center;text-decoration:none;cursor:pointer}
+.login-page .button-register-container .button-register:hover{background:#ffe3ea}

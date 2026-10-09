@@ -1,3 +1,4 @@
+import { formatMoney } from "../../../../utils/money";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./ProductDetail.css";
@@ -141,7 +142,7 @@ const ProductDetail: React.FC = () => {
           <h2>{product.name}</h2>
 
           <h3>
-            ${product.price?.toFixed(2)}
+            {formatMoney(product.price)}
             {isPesado && " / kg"}
           </h3>
 

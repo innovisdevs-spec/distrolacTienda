@@ -1,9 +1,12 @@
+import { formatMoney } from "../../../utils/money";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import emailjs from "@emailjs/browser";
 import { RootState } from "../../../types";
 import "./ShippingDetail.css";
+import "./OrderConfirmation.css";
+import "./OrderReview.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Alert from "../../Alert/Alert";
 import Spinner from "../../Spinner/Spinner";
@@ -68,6 +71,8 @@ export default function ShippingDetail() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmedOrderId, setConfirmedOrderId] = useState('');
+  const [emailFailed, setEmailFailed] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -228,8 +233,8 @@ export default function ShippingDetail() {
       Producto: ${item.title}
       ${item.sku ? `SKU: ${item.sku}` : ""}
       Cantidad: ${quantityToSend} ${unitLabel}${weightedInfo}
-      Precio unitario: $${Number(item.price).toFixed(2)}
-      Subtotal: $${getOrderLineTotal(item).toFixed(2)}
+      Precio unitario: ${formatMoney(item.price)}
+      Subtotal: ${formatMoney(getOrderLineTotal(item))}
       ------------------------
     `;
         },
@@ -330,7 +335,7 @@ export default function ShippingDetail() {
   };
 
   const handleConfirmOrder = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || showConfirmation || cartItems.length === 0) return;
 
     try {
       setLoading(true);
@@ -465,19 +470,33 @@ export default function ShippingDetail() {
       const savedOrder = await response.json();
       console.log("Orden creada exitosamente:", savedOrder);
 
+      // The order is already persisted. Email delivery must never turn this
+      // success into a retryable purchase error or keep the cart populated.
+      const orderId = savedOrder.storeOrder?._id;
+      setConfirmedOrderId(typeof orderId === 'string' ? orderId : '');
+      localStorage.removeItem("cart");
+      localStorage.removeItem("total");
+      localStorage.removeItem("shippingData");
+      window.dispatchEvent(new Event('cart:updated'));
+      window.dispatchEvent(new Event('storage'));
+      setCartItems([]);
+      setTotal(0);
+      setShowConfirmation(true);
+      setLoading(false);
+
       const commonTemplateParams = {
         to_name: `${shippingData.firstName} ${shippingData.lastName}`,
         customer_phone: shippingData.phone,
         customer_address: shippingData.address,
         order_details: formatOrderDetails(cartItems),
-        order_subtotal: `$${payloadTotal.toFixed(2)}`,
+        order_subtotal: formatMoney(payloadTotal),
         order_shipping: "Gratis",
-        order_total: `$${payloadTotal.toFixed(2)}`,
+        order_total: formatMoney(payloadTotal),
         order_date: new Date().toLocaleDateString(),
         comments: shippingData.comments || "Sin comentarios",
       };
 
-      await emailjs.send(
+      const notifications = await Promise.allSettled([emailjs.send(
         EMAIL_SERVICE_ID,
         EMAIL_TEMPLATE_CLIENT_ID,
         {
@@ -485,9 +504,7 @@ export default function ShippingDetail() {
           to_email: shippingData.email,
         },
         EMAIL_PUBLIC_KEY,
-      );
-
-      await emailjs.send(
+      ), emailjs.send(
         EMAIL_SERVICE_ID,
         EMAIL_TEMPLATE_ADMIN_ID,
         {
@@ -496,19 +513,8 @@ export default function ShippingDetail() {
           customer_email: shippingData.email,
         },
         EMAIL_PUBLIC_KEY,
-      );
-
-      localStorage.removeItem("cart");
-      localStorage.removeItem("total");
-      localStorage.removeItem("shippingData");
-
-      setCartItems([]);
-      setTotal(0);
-      setShowConfirmation(true);
-
-      setTimeout(() => {
-        navigate("/mispedidos", { replace: true });
-      }, 3000);
+      )]);
+      setEmailFailed(notifications.some(result => result.status === 'rejected'));
     } catch (error) {
       console.error("Error detallado:", error);
       handleShowAlert(
@@ -529,7 +535,7 @@ export default function ShippingDetail() {
   };
 
   return (
-    <div className="shipping-full-container">
+    <div className="shipping-full-container dl-order-review">
       {loading && <Spinner />}
       <Alert
         message={alertMessage}
@@ -548,23 +554,26 @@ export default function ShippingDetail() {
             ]}
           />
         </div>
-        <div className="red-underline">
-          <h1>CONFIRMAR PEDIDO</h1>
+        <div className="dl-review-heading">
+          <span>YA CASI ESTÁ</span>
+          <h1>Revisá tu pedido</h1>
+          <p>Un último vistazo y lo dejamos listo.</p>
         </div>
         <div className="shipping-container">
           <div className="shipping-leftcolumn">
             <div className="shipping-info">
+              <h2>Tus datos de entrega</h2>
               <div className="shipping-info-row">
                 <span>Email</span>
                 <span>{shippingData.email || "No especificado"}</span>
-                <button onClick={() => navigate("/detalledepedido")}>
+                <button aria-label="Editar email" onClick={() => navigate("/detalledepedido")}>
                   Editar
                 </button>
               </div>
               <div className="shipping-info-row">
                 <span>Teléfono</span>
                 <span>{shippingData.phone || "No especificado"}</span>
-                <button onClick={() => navigate("/detalledepedido")}>
+                <button aria-label="Editar teléfono" onClick={() => navigate("/detalledepedido")}>
                   Editar
                 </button>
               </div>
@@ -575,7 +584,7 @@ export default function ShippingDetail() {
                     ? `${shippingData.firstName} ${shippingData.lastName}`
                     : "No especificado"}
                 </span>
-                <button onClick={() => navigate("/detalledepedido")}>
+                <button aria-label="Editar nombre" onClick={() => navigate("/detalledepedido")}>
                   Editar
                 </button>
               </div>
@@ -586,35 +595,38 @@ export default function ShippingDetail() {
                     ? shippingData.address
                     : "No especificado"}
                 </span>
-                <button onClick={() => navigate("/detalledepedido")}>
+                <button aria-label="Editar dirección" onClick={() => navigate("/detalledepedido")}>
                   Editar
                 </button>
               </div>
             </div>
 
             <fieldset className="shipping-method">
-              <legend>Método de envío</legend>
-              <hr className="red-line-login" />
+              <legend>La entrega</legend>
               <div className="shipping-method-option">
-                <div className="adress-inputs">
-                  <input type="radio" name="shipping-method" defaultChecked />
-                  <label>Entrega a domicilio</label>
+                <div className="dl-shipping-included">
+                  <span className="dl-shipping-included__check" aria-hidden="true">✓</span>
+                  <div><strong>Envío gratis</strong><span>Entrega a domicilio</span></div>
                 </div>
-                <span>Gratis</span>
               </div>
             </fieldset>
 
+            <div className="dl-review-payment">
+              <span aria-hidden="true">✓</span>
+              <div><strong>Pagás cuando lo recibís</strong><p>No cobramos nada por adelantado.</p><small>En tu domicilio: efectivo o transferencia.</small></div>
+            </div>
+
             <div className="shipping-buttons">
-              <a
+              <button type="button"
                 className="shipping-back"
                 onClick={() => navigate("/detalledepedido")}
               >
-                Volver a detalles
-              </a>
+                ← Volver a mis datos
+              </button>
               <button
                 className="shipping-confirm"
                 onClick={handleConfirmOrder}
-                disabled={isSubmitting || showConfirmation || isLoadingProfile}
+                disabled={isSubmitting || showConfirmation || isLoadingProfile || cartItems.length === 0}
               >
                 {isSubmitting
                   ? "Procesando..."
@@ -622,12 +634,13 @@ export default function ShippingDetail() {
                     ? "Cargando datos..."
                     : showConfirmation
                       ? "Procesado"
-                      : "Confirmar pedido"}
+                      : "Confirmar mi pedido"}
               </button>
             </div>
           </div>
 
           <div className="shipping-rightcolumn">
+            <h2>Tu pedido</h2>
             <ul className="shipping-cartitems">
               {cartItems.map((item) => (
                 <li key={item.id} className="shipping-cartitem">
@@ -645,29 +658,34 @@ export default function ShippingDetail() {
               <div className="shipping-totals">
                 <div>
                   <span>Subtotal</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatMoney(total)}</span>
                 </div>
                 <div>
                   <span>Envío</span>
                   <span>Gratis</span>
                 </div>
                 <div className="shipping-total-row">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>Total estimado</span>
+                  <span>{formatMoney(total)}</span>
                 </div>
               </div>
+              {cartItems.some(item => item.typeOfFractionation === 'Pesado') && <p className="dl-review-weight-note">Los productos por peso se ajustan al peso final.</p>}
             </div>
           </div>
 
           {showConfirmation && (
-            <div className="confirmation-popup">
-              <div className="confirmation-content">
-                <h3>¡Pedido Confirmado!</h3>
-                <p>
-                  Tu pedido ha sido procesado. Recibirás un email con los
-                  detalles.
+            <div className="confirmation-popup dl-order-confirmation" role="dialog" aria-modal="true" aria-labelledby="order-confirmed-title" aria-describedby="order-confirmed-description">
+              <div className="confirmation-content dl-order-confirmation__card">
+                <div className="dl-order-confirmation__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 6" /></svg></div>
+                <span className="dl-order-confirmation__eyebrow">GRACIAS POR ELEGIR DISTROLAC</span>
+                <h3 id="order-confirmed-title">¡Pedido confirmado!</h3>
+                <p id="order-confirmed-description">
+                  Ya recibimos tu pedido. Podés consultar el detalle cuando quieras.
                 </p>
-                <p>Serás redirigido al inicio en unos segundos...</p>
+                <div className="dl-order-confirmation__payment"><strong>Pagás al recibir</strong><span>Sin anticipos. En tu casa o negocio.</span></div>
+                {confirmedOrderId && <div className="dl-order-confirmation__reference"><span>Referencia de tu pedido</span><strong>{confirmedOrderId}</strong></div>}
+                {emailFailed && <p className="dl-order-confirmation__notice" role="status">No pudimos enviar la confirmación por correo. Tu pedido está guardado; no hace falta volver a realizarlo.</p>}
+                <button className="dl-order-confirmation__button" autoFocus type="button" onClick={() => navigate(confirmedOrderId ? `/mispedidos?pedido=${encodeURIComponent(confirmedOrderId)}` : '/mispedidos', {replace:true})}>Ver {confirmedOrderId ? 'mi pedido' : 'mis pedidos'} <span aria-hidden="true">→</span></button>
               </div>
             </div>
           )}
