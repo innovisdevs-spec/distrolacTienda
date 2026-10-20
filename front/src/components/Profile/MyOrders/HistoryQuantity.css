@@ -1,0 +1,52 @@
+.order-detail-modal .dl-history-products td[data-label="Cantidad"] {
+  min-width: 125px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .order-detail-modal .dl-history-products,
+  .order-detail-modal .dl-history-products tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .order-detail-modal .dl-history-products thead { display: none; }
+  .order-detail-modal .dl-history-products tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 16px;
+    border: 1px solid #e4e8eb;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .order-detail-modal .dl-history-products td {
+    display: block;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    border: 0;
+  }
+  .order-detail-modal .dl-history-products td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #667580;
+  }
+  .order-detail-modal .dl-history-products .product-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .order-detail-modal .dl-history-products .product-image {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    object-fit: contain;
+  }
+}

@@ -1,4 +1,5 @@
 import { formatMoney } from "../../../utils/money";
+import { hormaLabel } from '../../../utils/presentation';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -275,8 +276,7 @@ export default function CartDetail() {
                           <>
                             <p>{formatMoney(item.price)} / kg</p>
                             <p>
-                              {item.quantity} horma
-                              {item.quantity > 1 && "s"} (~
+                              {hormaLabel(item.quantity)} (~
                               {kgTotales.toFixed(2)} kg)
                             </p>
                             <p>

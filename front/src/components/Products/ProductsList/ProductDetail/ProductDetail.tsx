@@ -1,7 +1,10 @@
 import { formatMoney } from "../../../../utils/money";
+import PresentationPicker from '../../../PresentationPicker';
+import { canChooseHalf, addPresentation } from '../../../../utils/presentation';
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./ProductDetail.css";
+import "./ProductDetailLayout.css";
 import Alert from "../../../Alert/Alert";
 import Breadcrums from "../../../Breadcrumbs/Breadcrums";
 import { formatCapWeight, normalizeCapToKg } from "../../../../utils/weight";
@@ -37,6 +40,7 @@ const ProductDetail: React.FC = () => {
 
   // 👇 ahora soporta decimales
   const [quantity, setQuantity] = useState<number>(1);
+  const [half, setHalf] = useState(false);
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -47,6 +51,7 @@ const ProductDetail: React.FC = () => {
   const isPesado = product?.typeOfFractionation === "Pesado" && capKg > 0;
 
   useEffect(() => {
+    setHalf(false); setQuantity(1); setLoading(true);
     const fetchProduct = async () => {
       try {
         const res = await fetch(`${BACKEND_URI}/store/products/${id}`);
@@ -69,7 +74,7 @@ const ProductDetail: React.FC = () => {
     if (!product) return;
 
     // 🚨 validación clave para pesados
-    if (isPesado && quantity <= 0) {
+    if (!Number.isFinite(quantity) || quantity <= 0 || (canChooseHalf(product) && !half && !Number.isInteger(quantity))) {
       setAlertMessage("Ingresá una cantidad válida");
       setAlertStatus("error");
       setShowAlert(true);
@@ -85,14 +90,18 @@ const ProductDetail: React.FC = () => {
       (item) => item.id === product._id,
     );
 
+    const previous = existingIndex >= 0 ? cart[existingIndex].quantity : 0;
+    let next;
+    try { next = canChooseHalf(product) ? addPresentation(previous, quantity, half) : previous + quantity; }
+    catch { setAlertMessage('Revisá la cantidad que ya tenés en el carrito.'); setAlertStatus('error'); setShowAlert(true); return; }
     if (existingIndex >= 0) {
-      cart[existingIndex].quantity += quantity;
+      cart[existingIndex].quantity = next;
     } else {
       cart.push({
         id: product._id,
         title: product.name,
         image: product.images?.[0],
-        quantity, // hormas o unidades (decimal si pesado)
+        quantity: next,
         price: product.price || 0, // PRECIO POR KG SI ES PESADO
         cap: capKg, // KG POR HORMA NORMALIZADO
         typeOfFractionation: product.typeOfFractionation,
@@ -102,7 +111,7 @@ const ProductDetail: React.FC = () => {
     localStorage.setItem("cart", JSON.stringify(cart));
     setQuantity(1);
 
-    setAlertMessage("Producto agregado al carrito");
+    setAlertMessage(next === previous ? 'Ya tenés una media horma en tu pedido' : 'Producto agregado al carrito');
     setAlertStatus("success");
     setShowAlert(true);
     setAlertEvent((prev) => !prev);
@@ -152,16 +161,19 @@ const ProductDetail: React.FC = () => {
             </p>
           )}
 
+          {canChooseHalf(product) && <><PresentationPicker half={half} onChange={setHalf} name={product.name}/>{half && <p className="dl-half-hint">Una media horma por producto · aprox. {capKg / 2} kg</p>}</>}
           <div className="productdetail-buttons-container">
             <div>
-              <p>Cantidad ({isPesado ? "Hormas" : "Unidades"})</p>
+              <p>Cantidad ({half ? 'Media horma' : isPesado ? "Hormas enteras" : "Unidades"})</p>
 
               <div className="productdetail-quantityline">
                 {isPesado ? (
                   <input
                     type="number"
-                    step={0.1}
-                    value={quantity === 0 ? "" : quantity}
+                    step={canChooseHalf(product) ? 1 : 0.1}
+                    min={1}
+                    disabled={half}
+                    value={half ? 1 : quantity === 0 ? "" : quantity}
                     className="quantity-input"
                     onChange={(e) => {
                       const value = e.target.value;
@@ -188,7 +200,7 @@ const ProductDetail: React.FC = () => {
 
               {isPesado && (
                 <p style={{ fontSize: 13 }}>
-                  Total aprox: {(quantity * capKg).toFixed(2)} kg
+                  Total aprox: {((half ? 0.5 : quantity) * capKg).toFixed(2)} kg
                 </p>
               )}
             </div>

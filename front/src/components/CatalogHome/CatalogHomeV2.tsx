@@ -1,4 +1,6 @@
 import { sameCategory } from "./categoryIdentity";
+import PresentationPicker from '../PresentationPicker';
+import { canChooseHalf, addPresentation } from '../../utils/presentation';
 import RetailHero from "./RetailHero";
 import { useEffect, useMemo, useState } from 'react';
 
@@ -26,6 +28,7 @@ const rank = (p: Product) => {
 function CartIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M2 3h3l3 13h11l3-10H6M9 20h.01M18 20h.01" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
 function Card({ p }: { p: Product }) {
   const [quantity, setQuantity] = useState(1);
+  const [half, setHalf] = useState(false);
   const [notice, setNotice] = useState('');
   const [badImage, setBadImage] = useState(false);
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 2400); return () => window.clearTimeout(timer); }, [notice]);
@@ -34,11 +37,13 @@ function Card({ p }: { p: Product }) {
       const cart: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]');
       if (!Array.isArray(cart)) throw new Error('Invalid cart');
       const existing = cart.find(item => item.id === p._id);
-      if (existing) existing.quantity += quantity;
-      else cart.push({ id: p._id, title: p.name, image: p.images?.[0] || '', quantity, price: p.price || 0, typeOfFractionation: p.typeOfFractionation, cap: p.typeOfFractionation === 'Pesado' ? normalizeCapToKg(p.cap) : undefined });
+      const previous = existing?.quantity || 0;
+      const next = canChooseHalf(p) ? addPresentation(previous, quantity, half) : previous + quantity;
+      if (existing) existing.quantity = next;
+      else cart.push({ id: p._id, title: p.name, image: p.images?.[0] || '', quantity:next, price: p.price || 0, typeOfFractionation: p.typeOfFractionation, cap: p.typeOfFractionation === 'Pesado' ? normalizeCapToKg(p.cap) : undefined });
       localStorage.setItem('cart', JSON.stringify(cart));
       window.dispatchEvent(new Event('storage'));
-      setNotice('Agregado a tu pedido');
+      setNotice(next === previous ? 'Ya tenés una media horma en tu pedido' : 'Agregado a tu pedido');
     } catch { setNotice('No se pudo agregar. Revisá tu carrito.'); }
   };
   const weighed = p.typeOfFractionation === 'Pesado';
@@ -50,7 +55,8 @@ function Card({ p }: { p: Product }) {
       <span className="v2-unit">{weighed && kg ? `Horma aprox. ${kg} kg` : 'Presentación según producto'}</span>
     </Link>
     <div className="v2-price"><span>{weighed ? 'Precio por kg' : 'Precio'}</span><strong>{typeof p.price === 'number' ? p.price.toLocaleString('es-AR', { style:'currency', currency:'ARS', maximumFractionDigits:2 }) : 'Consultar'}</strong></div>
-    <div className="v2-card-actions"><div className="v2-stepper"><button type="button" aria-label={'Restar ' + p.name} disabled={quantity <= 1} onClick={() => setQuantity(n => Math.max(1, n-1))}>−</button><output aria-label={'Cantidad de ' + p.name}>{quantity}</output><button type="button" aria-label={'Sumar ' + p.name} disabled={quantity >= 99} onClick={() => setQuantity(n => Math.min(99, n+1))}>+</button></div><button className="v2-add" onClick={add} disabled={typeof p.price !== 'number'} aria-label={'Agregar ' + p.name}><CartIcon/>Agregar</button></div>
+    {canChooseHalf(p) && <><PresentationPicker half={half} onChange={setHalf} name={p.name}/>{half && <small className="dl-half-hint">1 media · aprox. {Number(kg)/2} kg · máximo una</small>}</>}
+    <div className="v2-card-actions"><div className="v2-stepper"><button type="button" aria-label={'Restar ' + p.name} disabled={half || quantity <= 1} onClick={() => setQuantity(n => Math.max(1, n-1))}>−</button><output aria-label={'Cantidad de ' + p.name}>{half ? 1 : quantity}</output><button type="button" aria-label={'Sumar ' + p.name} disabled={half || quantity >= 99} onClick={() => setQuantity(n => Math.min(99, n+1))}>+</button></div><button type="button" className="v2-add" onClick={add} disabled={typeof p.price !== 'number'} aria-label={'Agregar ' + p.name}><CartIcon/>Agregar</button></div>
     <span className="v2-notice" role="status">{notice}</span>
   </article>;
 }

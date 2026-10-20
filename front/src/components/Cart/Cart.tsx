@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { canChooseHalf, validHormaQuantity, hormaLabel } from '../../utils/presentation';
+import '../PresentationPicker.css';
 import "./Cart.css";
 import PaymentNotice from "../PaymentNotice/PaymentNotice";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,7 +23,17 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
   const handleViewDetails = () => {
+    if (cartItems.some(item => !Number.isFinite(item.quantity) || item.quantity <= 0 || (canChooseHalf(item) && !validHormaQuantity(item.quantity)))) {
+      window.alert('Revisá las cantidades: elegí hormas enteras y, si querés, una media horma por producto.');
+      return;
+    }
     navigate("/detalledepedido");
+  };
+  const setHormaQuantity = (id: string, quantity: number) => {
+    if (!validHormaQuantity(quantity)) return;
+    const next = cartItems.map(item => item.id === id ? {...item, quantity} : item);
+    setCartItems(next); localStorage.setItem('cart', JSON.stringify(next));
+    window.dispatchEvent(new Event('storage'));
   };
   useEffect(() => {
     try {
@@ -143,7 +155,7 @@ export default function Cart() {
 
                             {/* 👇 ACA MOSTRAMOS HORMAS / KG SIN ROMPER CSS */}
                             <p style={{ fontSize: 13, opacity: 0.8 }}>
-                              {item.quantity} {isPesado ? (item.quantity === 1 ? "Horma" : "Hormas") : (item.quantity === 1 ? "Unidad" : "Unidades")}
+                              {isPesado ? hormaLabel(item.quantity) : `${item.quantity} ${item.quantity === 1 ? 'Unidad' : 'Unidades'}`}
                               {isPesado && capKg > 0 && (
                                 <> (≈ {realKg.toFixed(2)} kg)</>
                               )}
@@ -167,7 +179,11 @@ export default function Cart() {
                         {/* CANTIDAD */}
                         <div className="quantity-container">
                           <div>
-                            {isPesado ? (
+                            {canChooseHalf(item) ? <div className="dl-cart-presentation">
+                              <label>Enteras <input type="number" min={item.quantity % 1 === 0.5 ? 0 : 1} step={1} aria-label={`Hormas enteras de ${item.title}`} value={Math.floor(item.quantity)} onChange={e=> {const n=Number(e.target.value);if(e.target.value !== '' && Number.isInteger(n) && n>=0) setHormaQuantity(item.id,n+(item.quantity % 1 === 0.5 ? 0.5 : 0));}} /></label>
+                              <label><input type="checkbox" checked={item.quantity % 1 === 0.5} onChange={e=>setHormaQuantity(item.id, Math.max(e.target.checked ? 0 : 1,Math.floor(item.quantity))+(e.target.checked ? 0.5 : 0))}/>Una media horma</label>
+                              {!validHormaQuantity(item.quantity) && <small role="alert">Revisá la cantidad anterior: {item.quantity}</small>}
+                            </div> : isPesado ? (
                               <input
                                 type="number"
                                 step={0.1}

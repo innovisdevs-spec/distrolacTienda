@@ -1,3 +1,5 @@
+import { orderQuantityLabel } from '../../../utils/presentation';
+import type { OrderQuantity } from '../../../utils/presentation';
 import { formatMoney } from "../../../utils/money";
 // src/components/MyOrders/MyOrders.tsx
 import { useEffect, useState } from "react";
@@ -7,12 +9,13 @@ import { Table, Button, Container, Modal } from "react-bootstrap";
 import AddIcon from "@mui/icons-material/Add";
 import { RootState } from "../../../types";
 import "./MyOrders.css";
+import "./HistoryQuantity.css";
 import Breadcrums from "../../Breadcrumbs/Breadcrums";
 import Spinner from "../../Spinner/Spinner";
 
 const BASE_URL = import.meta.env.VITE_BACK_APP_URI;
 
-interface OrderItem {
+interface OrderItem extends OrderQuantity {
   title: string;
   quantity: number;
   price: number;
@@ -173,7 +176,7 @@ export default function MyOrders() {
 
           <div className="order-detail-section mt-4">
             <h5>Productos</h5>
-            <Table responsive className="products-table">
+            <Table responsive className="products-table dl-history-products">
               <thead>
                 <tr>
                   <th>Producto</th>
@@ -195,7 +198,7 @@ export default function MyOrders() {
                         <span>{item.title}</span>
                       </div>
                     </td>
-                    <td data-label="Cantidad">{item.quantity}</td>
+                    <td data-label="Cantidad">{orderQuantityLabel(item)}</td>
                     <td data-label="Precio Unit.">{formatMoney(item.price)}</td>
                     <td data-label="Subtotal">
                       {formatMoney((item.quantity * item.price))}

@@ -1,0 +1,9 @@
+.dl-presentation{display:flex;gap:4px;padding:4px;background:#f5f6f8;border:1px solid #e2e6ea;border-radius:12px;margin:8px 0}
+.dl-presentation button{flex:1;min-width:0;min-height:36px;padding:6px 8px;border:1px solid transparent;border-radius:9px;background:transparent;color:#304555;font:inherit;font-size:13px;line-height:1.2;cursor:pointer}
+.dl-presentation button[aria-pressed=true]{background:#fff0f3;border-color:#df1439;color:#a81230;font-weight:700}
+.dl-presentation button:focus-visible{outline:2px solid #173044;outline-offset:2px}
+.dl-half-hint{display:block;color:#526573;font-size:12px;margin:5px 0}
+.dl-cart-presentation{display:grid;gap:8px;max-width:240px}
+.dl-cart-presentation label{display:flex;align-items:center;gap:8px;font-size:13px}
+.dl-cart-presentation input[type=number]{width:80px!important;min-height:40px}
+.dl-cart-presentation input[type=checkbox]{width:18px!important;height:18px}

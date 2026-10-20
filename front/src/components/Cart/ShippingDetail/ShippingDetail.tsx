@@ -1,4 +1,5 @@
 import { formatMoney } from "../../../utils/money";
+import { canChooseHalf, validHormaQuantity, hormaLabel, presentationMetadata } from '../../../utils/presentation';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -226,7 +227,7 @@ export default function ShippingDetail() {
           const unitLabel = isPesado ? "kg" : "un";
           const weightedInfo =
             isPesado && normalizeCapToKg(item.cap) > 0
-              ? ` (~${item.quantity} horma${item.quantity > 1 ? "s" : ""})`
+              ? ` (${hormaLabel(item.quantity)})`
               : "";
 
           return `
@@ -320,6 +321,7 @@ export default function ShippingDetail() {
   };
 
   const validateCartItem = (item: CartItem) => {
+    if (!Number.isFinite(item.quantity) || item.quantity <= 0 || (canChooseHalf(item) && !validHormaQuantity(item.quantity))) return false;
     if (!item.title) console.error("Falta title en item:", item);
     if (!item.quantity) console.error("Falta quantity en item:", item);
     if (!item.price) console.error("Falta price en item:", item);
@@ -388,6 +390,7 @@ export default function ShippingDetail() {
             fullName: `${shippingData.firstName} ${shippingData.lastName}`,
           },
           orderItems: cartItems.map((item) => ({
+            ...presentationMetadata(item),
             title: item.title,
             quantity: getOrderQuantity(item),
             price: item.price,
@@ -414,6 +417,7 @@ export default function ShippingDetail() {
           },
           seller: storeVendorId,
           products: cartItems.map((item) => ({
+            ...presentationMetadata(item),
             product: item.id,
             quantity: getOrderQuantity(item),
             price: item.price,
@@ -427,7 +431,7 @@ export default function ShippingDetail() {
             status: "NO ENTREGADO",
             address: shippingData.address,
           },
-          notes: shippingData.comments || "",
+          notes: [shippingData.comments, ...cartItems.filter(item=>canChooseHalf(item)).map(item=>`${item.title}: ${hormaLabel(item.quantity)} (peso estimado; ajustar al preparar).`)].filter(Boolean).join('\n'),
         },
       };
 
@@ -649,7 +653,7 @@ export default function ShippingDetail() {
                     <h3 className="title-item-detail">{item.title}</h3>
                     {/* <p>${Number(item.price).toFixed(2)}</p> */}
                   </div>
-                  <span>x{item.quantity}</span>
+                  <span>{item.typeOfFractionation === 'Pesado' ? hormaLabel(item.quantity) : `x${item.quantity}`}</span>
                 </li>
               ))}
             </ul>
